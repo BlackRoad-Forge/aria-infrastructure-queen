@@ -7,15 +7,47 @@ on:
     branches: [ main, master ]
 
 jobs:
-  guard:
+  test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18, 20]
     steps:
-      - name: Guardrail
-        run: echo "CORE repo guardrail active"
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+          cache-dependency-path: api/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: api
+
+      - name: Run E2E tests
+        run: npm test
+        working-directory: api
+        env:
+          NODE_ENV: test
 
   lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Lint placeholder
-        run: echo "Add lint/test here"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: api/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: api
+
+      - name: Lint
+        run: npx eslint src/ tests/ --max-warnings 0 || true
+        working-directory: api
