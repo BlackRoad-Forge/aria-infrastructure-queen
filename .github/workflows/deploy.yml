@@ -1,11 +1,27 @@
-name: Deploy
+name: Deploy to Cloudflare Pages
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
+    paths:
+      - 'website/**'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
 
 jobs:
   deploy:
-    uses: blackboxprogramming/blackroad-deploy/.github/workflows/cloudflare-deploy.yml@main
-    with:
-      project: blackroad-io
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@392082e81ffbcb9ebdde27400634aa004b35ea37 # v3.14.0
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy website --project-name=aria-blackroad-me
+          workingDirectory: '.'

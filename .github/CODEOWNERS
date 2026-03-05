@@ -1,0 +1,11 @@
+# Default owner for all files
+* @blackboxprogramming
+
+# Workflows require review
+.github/workflows/ @blackboxprogramming
+
+# Infrastructure scripts
+scripts/ @blackboxprogramming
+
+# Website and worker
+website/ @blackboxprogramming

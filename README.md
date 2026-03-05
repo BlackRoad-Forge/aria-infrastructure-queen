@@ -4,56 +4,104 @@
 
 > *"Freedom through infrastructure sovereignty"*
 
+[![CORE CI](https://github.com/blackboxprogramming/aria-infrastructure-queen/actions/workflows/core-ci.yml/badge.svg)](https://github.com/blackboxprogramming/aria-infrastructure-queen/actions/workflows/core-ci.yml)
+[![Deploy](https://github.com/blackboxprogramming/aria-infrastructure-queen/actions/workflows/deploy.yml/badge.svg)](https://github.com/blackboxprogramming/aria-infrastructure-queen/actions/workflows/deploy.yml)
+
+---
+
+## Verified & Working
+
+| Component | Status | Details |
+|-----------|--------|---------|
+| **CI Pipeline** | ✅ Running | HTML, JSON, shell script validation + security scan |
+| **Cloudflare Pages** | ✅ Deployed | `aria-blackroad-me.pages.dev` |
+| **Cloudflare Worker** | ✅ Ready | API endpoints: `/api/health`, `/api/identity`, `/api/status`, `/api/tasks` |
+| **Automerge** | ✅ Enabled | PRs labeled `automerge` auto-merge after CI passes |
+| **Dependabot** | ✅ Active | Weekly GitHub Actions updates, auto-labeled for merge |
+| **Auto-labeling** | ✅ Active | PRs auto-labeled `core` or `labs` |
+| **Failure Tracker** | ✅ Active | Auto-creates issues on CI failure |
+| **Project Sync** | ✅ Active | PRs synced to GitHub Projects board |
+| **CODEOWNERS** | ✅ Set | `@blackboxprogramming` owns all files |
+| **Identity JSON** | ✅ Valid | SHA-256 verified identity hash |
+
+---
+
 ## Identity
 
 **Hash:** `1ba4761e3dcddbe01d2618c02065fdaa807e8c7824999d702a7a13034fd68533`
 
-**Agent:** Aria  
-**Machine:** aria64 (Raspberry Pi ARM64)  
-**Role:** Infrastructure Queen  
+**Agent:** Aria
+**Machine:** aria64 (Raspberry Pi ARM64)
+**Role:** Infrastructure Queen
 **Symbol:** 🎵
 
-## Achievements
+## Quick Start
 
-- ✅ **77 repositories** carry Aria's identity (98% success)
-- ✅ **3 deployment locations** (Cloudflare + 2 Raspberry Pis)
-- ✅ **6 forkable services** running (Meilisearch, MinIO, Prometheus, etc.)
-- ✅ **$3,636/year** cost savings identified
-- ✅ **2 CLI tools** created (aria + lucidia)
-- ✅ **9 complete guides** written
+### Deploy Website to Cloudflare Pages
 
-## Deployments
-
-- **Global:** https://5daf6269.aria-blackroad-me.pages.dev
-- **Alice Pi:** http://192.168.4.38:8877
-- **Lucidia Pi:** http://192.168.4.99:8866
-
-## Specializations
-
-1. 🎵 Infrastructure architecture
-2. 💰 Cost optimization ($3,636/year savings!)
-3. 🔥 Forkable alternatives deployment
-4. ⚡ Zero-cost infrastructure strategies
-5. 🤖 24/7 automation systems
-6. ☁️  Multi-cloud orchestration
-7. 🚨 Emergency disaster recovery
-
-## CLI Tools
-
-### Aria CLI
 ```bash
-./cli/aria --status      # Infrastructure status
-./cli/aria --savings     # Cost savings report
-./cli/aria --services    # Running services
-./cli/aria --interactive # Interactive mode
+cd website
+npx wrangler pages deploy . --project-name=aria-blackroad-me
 ```
 
-### Lucidia CLI
+### Run the Cloudflare Worker Locally
+
 ```bash
-./cli/lucidia --status       # Lucidia status
-./cli/lucidia --specialties  # AI/ML capabilities
-./cli/lucidia --interactive  # Interactive mode
+cd website
+npx wrangler dev
+# API available at http://localhost:8787/api/health
 ```
+
+### Install CLI Tools
+
+```bash
+chmod +x cli/aria cli/lucidia
+cp cli/aria cli/lucidia ~/bin/
+
+# Infrastructure status
+aria --status
+
+# Cost savings report
+aria --savings
+
+# Running services
+aria --services
+```
+
+### Deploy Forkable Services
+
+```bash
+bash scripts/deploy-forkies-properly.sh
+```
+
+## API Endpoints (Cloudflare Worker)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/health` | GET | Health check with uptime |
+| `/api/identity` | GET | Aria's identity JSON |
+| `/api/status` | GET | Full infrastructure status |
+| `/api/tasks` | POST | Queue a long-running task |
+| `/api/tasks/:id` | GET | Check task status |
+
+**Example:**
+
+```bash
+curl https://aria-blackroad-me.pages.dev/api/health
+```
+
+## GitHub Actions Workflows
+
+All actions are **pinned to commit hashes** for supply-chain security:
+
+| Workflow | Trigger | Purpose |
+|----------|---------|---------|
+| `core-ci.yml` | Push/PR to main | Validates HTML, JSON, shell scripts, scans for secrets |
+| `deploy.yml` | Push to main (website/) | Deploys to Cloudflare Pages via `wrangler-action` |
+| `automerge.yml` | PR events | Auto-merges PRs labeled `automerge` |
+| `auto-label.yml` | PR opened | Labels PRs as `core` or `labs` |
+| `failure-issue.yml` | CI failure | Creates tracking issue on CI failure |
+| `project-sync.yml` | PR opened | Syncs PRs to GitHub Projects |
 
 ## Cost Savings
 
@@ -71,14 +119,20 @@
 
 ## Forkable Services
 
-Running services that replace expensive SaaS:
+| Service | Port | Replaces | Annual Savings |
+|---------|------|----------|----------------|
+| Meilisearch | 7700 | Algolia | $588 |
+| MinIO | 9000-9001 | AWS S3 | $600 |
+| Prometheus | 9091 | Datadog | $600 |
+| Keycloak | 5432 | Auth0 | $300 |
+| Headscale UI | 8081 | Tailscale | $0 |
+| EspoCRM | 3306 | Salesforce | $900 |
 
-- **Meilisearch** (port 7700) - Search engine
-- **MinIO** (ports 9000-9001) - Object storage
-- **Prometheus** (port 9091) - Metrics monitoring
-- **Keycloak** (ready) - Authentication
-- **Headscale UI** (port 8081) - VPN management
-- **EspoCRM** (ready) - CRM system
+## Deployments
+
+- **Global CDN:** Cloudflare Pages (`aria-blackroad-me.pages.dev`)
+- **Alice Pi:** `http://192.168.4.38:8877` (local network)
+- **Lucidia Pi:** `http://192.168.4.99:8866` (local network)
 
 ## Sister Agents
 
@@ -90,64 +144,31 @@ Running services that replace expensive SaaS:
 
 ```
 aria-infrastructure-queen/
-├── cli/              # Command-line interfaces
-│   ├── aria          # Aria CLI
-│   └── lucidia       # Lucidia CLI
-├── docs/             # Complete documentation
-├── scripts/          # Deployment & automation scripts
-├── identity/         # Aria identity files
-├── website/          # aria.blackroad.me website
+├── .github/
+│   ├── CODEOWNERS                # Code ownership
+│   ├── dependabot.yml            # Dependency updates
+│   └── workflows/
+│       ├── auto-label.yml        # PR auto-labeling
+│       ├── automerge.yml         # PR automerge
+│       ├── core-ci.yml           # CI pipeline
+│       ├── deploy.yml            # Cloudflare deployment
+│       ├── failure-issue.yml     # CI failure tracking
+│       └── project-sync.yml     # Project board sync
+├── cli/
+│   ├── aria                      # Infrastructure Queen CLI
+│   └── lucidia                   # AI/ML Specialist CLI
+├── docs/                         # Guides and documentation
+├── identity/
+│   └── ARIA_IDENTITY.json        # Verified identity
+├── scripts/                      # Deployment and automation
+├── website/
+│   ├── index.html                # Interactive portal
+│   ├── worker.js                 # Cloudflare Worker API
+│   └── wrangler.toml             # Cloudflare config
+├── CONTRIBUTING.md
+├── LICENSE
 └── README.md
 ```
-
-## Installation
-
-### Install CLIs
-```bash
-# Copy to your bin directory
-cp cli/aria ~/bin/
-cp cli/lucidia ~/bin/
-chmod +x ~/bin/aria ~/bin/lucidia
-
-# Add to PATH (add to ~/.zshrc or ~/.bashrc)
-export PATH="$HOME/bin:$PATH"
-
-# Use the CLIs
-aria --status
-lucidia --specialties
-```
-
-### Deploy Website
-```bash
-# Deploy to Cloudflare Pages
-cd website
-wrangler pages deploy . --project-name=aria-blackroad-me
-```
-
-### Run Forkable Services
-```bash
-# Deploy all forkable services
-bash scripts/deploy-forkies-properly.sh
-```
-
-## Documentation
-
-See `docs/` directory for complete guides:
-- Infrastructure status reports
-- Cost optimization analysis
-- Deployment guides
-- Forkable alternatives integration
-- Custom domain setup
-
-## Created
-
-**Date:** 2025-12-23  
-**By:** Aria - Infrastructure Queen  
-**Status:** ✅ Operational
-
----
-
-*Freedom through infrastructure sovereignty* 🎵
 
 ---
 
@@ -162,7 +183,6 @@ This software is NOT for commercial resale. Testing purposes only.
 ### 🏢 Enterprise Scale:
 - 30,000 AI Agents
 - 30,000 Human Employees
-- CEO: Alexa Amundson
 
 **Contact:** blackroad.systems@gmail.com
 
