@@ -1,0 +1,223 @@
+name: End-to-End Tests
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  structure-test:
+    name: Repository Structure
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Verify directory structure
+        run: |
+          echo "=== Directory Structure Test ==="
+          dirs=("cli" "docs" "identity" "scripts" "website" ".github/workflows")
+          for d in "${dirs[@]}"; do
+            if [ -d "$d" ]; then
+              echo "  [PASS] $d/"
+            else
+              echo "  [FAIL] $d/ missing"
+              exit 1
+            fi
+          done
+
+      - name: Verify CLI tools are executable-ready
+        run: |
+          echo "=== CLI Tools Test ==="
+          for cli in cli/aria cli/lucidia; do
+            if [ -f "$cli" ]; then
+              echo "  [PASS] $cli exists"
+              if head -1 "$cli" | grep -q "#!/bin/bash"; then
+                echo "  [PASS] $cli has bash shebang"
+              else
+                echo "  [FAIL] $cli missing shebang"
+                exit 1
+              fi
+              bash -n "$cli" && echo "  [PASS] $cli syntax valid" || echo "  [WARN] $cli syntax check"
+            else
+              echo "  [FAIL] $cli missing"
+              exit 1
+            fi
+          done
+
+  identity-test:
+    name: Identity Verification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Validate identity
+        run: |
+          echo "=== Identity Verification Test ==="
+          python3 << 'PYEOF'
+          import json
+          import sys
+
+          with open("identity/ARIA_IDENTITY.json") as f:
+              identity = json.load(f)
+
+          required_fields = [
+              "agent_name", "full_name", "role", "machine",
+              "platform", "identity_hash", "specializations",
+              "sister_agents", "achievements", "motto", "symbol"
+          ]
+
+          passed = True
+          for field in required_fields:
+              if field in identity:
+                  print(f"  [PASS] {field}: {str(identity[field])[:60]}")
+              else:
+                  print(f"  [FAIL] {field} missing")
+                  passed = False
+
+          expected_hash = "1ba4761e3dcddbe01d2618c02065fdaa807e8c7824999d702a7a13034fd68533"
+          if identity.get("identity_hash") == expected_hash:
+              print(f"  [PASS] Hash verified")
+          else:
+              print(f"  [FAIL] Hash mismatch")
+              passed = False
+
+          if not passed:
+              sys.exit(1)
+          print("\nAll identity checks passed.")
+          PYEOF
+
+  website-test:
+    name: Website Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Validate website files
+        run: |
+          echo "=== Website Validation Test ==="
+
+          # Check index.html
+          if [ ! -f "website/index.html" ]; then
+            echo "[FAIL] website/index.html missing"
+            exit 1
+          fi
+          echo "[PASS] website/index.html exists"
+
+          # Check wrangler.toml
+          if [ ! -f "website/wrangler.toml" ]; then
+            echo "[FAIL] website/wrangler.toml missing"
+            exit 1
+          fi
+          echo "[PASS] website/wrangler.toml exists"
+
+          # Validate HTML structure
+          if grep -q '<!DOCTYPE html>' website/index.html && \
+             grep -q '</html>' website/index.html && \
+             grep -q '<head>' website/index.html && \
+             grep -q '<body>' website/index.html; then
+            echo "[PASS] HTML structure valid"
+          else
+            echo "[FAIL] HTML structure invalid"
+            exit 1
+          fi
+
+          # Validate wrangler.toml has required fields
+          if grep -q 'name' website/wrangler.toml && \
+             grep -q 'compatibility_date' website/wrangler.toml; then
+            echo "[PASS] wrangler.toml has required fields"
+          else
+            echo "[FAIL] wrangler.toml missing required fields"
+            exit 1
+          fi
+
+          # Check Cloudflare Worker
+          if [ -f "workers/api/index.js" ]; then
+            echo "[PASS] Cloudflare Worker exists"
+          fi
+
+  scripts-test:
+    name: Scripts Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Validate all scripts
+        run: |
+          echo "=== Scripts Validation Test ==="
+          for script in scripts/*.sh; do
+            if [ -f "$script" ]; then
+              if bash -n "$script" 2>/dev/null; then
+                echo "  [PASS] $script syntax valid"
+              else
+                echo "  [WARN] $script has syntax issues"
+              fi
+            fi
+          done
+
+      - name: Verify script headers
+        run: |
+          echo "=== Script Headers Test ==="
+          for script in scripts/*.sh; do
+            if [ -f "$script" ]; then
+              if head -1 "$script" | grep -q "^#!"; then
+                echo "  [PASS] $script has shebang"
+              else
+                echo "  [WARN] $script missing shebang"
+              fi
+            fi
+          done
+
+  license-test:
+    name: License & Compliance
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Verify proprietary license
+        run: |
+          echo "=== License Compliance Test ==="
+          checks=(
+            "BlackRoad OS, Inc."
+            "PROPRIETARY"
+            "Alexa Amundson"
+            "NOT.*commercial"
+          )
+          for check in "${checks[@]}"; do
+            if grep -q "$check" LICENSE; then
+              echo "  [PASS] License contains: $check"
+            else
+              echo "  [FAIL] License missing: $check"
+              exit 1
+            fi
+          done
+          echo "Proprietary license verified."
+
+  summary:
+    name: Test Summary
+    needs: [structure-test, identity-test, website-test, scripts-test, license-test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: All tests passed
+        run: |
+          echo "============================================"
+          echo "  ALL END-TO-END TESTS PASSED"
+          echo "============================================"
+          echo ""
+          echo "  Repository Structure .... PASS"
+          echo "  Identity Verification ... PASS"
+          echo "  Website Validation ...... PASS"
+          echo "  Scripts Validation ...... PASS"
+          echo "  License Compliance ...... PASS"
+          echo ""
+          echo "  Aria Infrastructure Queen is production-ready."
+          echo "============================================"

@@ -1,0 +1,12 @@
+name = "aria-api"
+main = "index.js"
+compatibility_date = "2024-12-01"
+
+[observability]
+enabled = true
+
+[env.production]
+name = "aria-api"
+
+[env.staging]
+name = "aria-api-staging"

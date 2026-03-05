@@ -1,0 +1,18 @@
+# BlackRoad OS, Inc. - Code Ownership
+# Copyright (c) 2026 BlackRoad OS, Inc. All Rights Reserved.
+
+# Default owners for everything
+* @blackboxprogramming
+
+# Workflows require owner review
+.github/ @blackboxprogramming
+
+# Infrastructure & deployment
+scripts/ @blackboxprogramming
+website/ @blackboxprogramming
+
+# Identity files (critical)
+identity/ @blackboxprogramming
+
+# License and legal
+LICENSE @blackboxprogramming

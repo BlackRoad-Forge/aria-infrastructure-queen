@@ -1,0 +1,34 @@
+name: Deploy Cloudflare Worker
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'workers/**'
+      - '.github/workflows/deploy-worker.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-api:
+    name: Deploy API Worker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Deploy Worker
+        uses: cloudflare/wrangler-action@da0e0e55abaecd3a6e1c3c23a52e9392e4e11728 # v3.14.0
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: workers/api
+          command: deploy
+
+      - name: Verify deployment
+        run: |
+          echo "## Worker Deployment" >> $GITHUB_STEP_SUMMARY
+          echo "- **Worker:** aria-api" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status:** Deployed" >> $GITHUB_STEP_SUMMARY

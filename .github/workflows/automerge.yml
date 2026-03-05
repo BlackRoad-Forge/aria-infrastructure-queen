@@ -1,0 +1,29 @@
+name: Automerge
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled]
+  check_suite:
+    types: [completed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  automerge:
+    name: Auto-merge Dependabot & Approved PRs
+    runs-on: ubuntu-latest
+    if: >-
+      github.event.pull_request.user.login == 'dependabot[bot]' ||
+      contains(github.event.pull_request.labels.*.name, 'automerge')
+    steps:
+      - name: Automerge
+        uses: pascalgn/automerge-action@7961b8b5eec56cc088c140b56d864285eabd3535 # v0.16.4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MERGE_METHOD: squash
+          MERGE_COMMIT_MESSAGE: pull-request-title
+          UPDATE_METHOD: rebase
+          MERGE_LABELS: automerge,!wip,!do-not-merge
+          MERGE_REQUIRED_APPROVALS: 0

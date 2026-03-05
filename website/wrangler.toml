@@ -1,2 +1,8 @@
 name = "aria-blackroad-me"
-compatibility_date = "2024-01-01"
+compatibility_date = "2024-12-01"
+
+# Cloudflare Pages configuration
+# Deploy: wrangler pages deploy . --project-name=aria-blackroad-me
+
+[site]
+bucket = "."

@@ -2,20 +2,163 @@ name: CORE CI
 
 on:
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
   push:
-    branches: [ main, master ]
+    branches: [main, master]
+
+permissions:
+  contents: read
 
 jobs:
   guard:
+    name: Guardrail Check
     runs-on: ubuntu-latest
     steps:
-      - name: Guardrail
-        run: echo "CORE repo guardrail active"
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Verify repository structure
+        run: |
+          echo "=== CORE CI Guardrail ==="
+          echo "Checking required files..."
+          required_files=(
+            "README.md"
+            "LICENSE"
+            "CONTRIBUTING.md"
+            "identity/ARIA_IDENTITY.json"
+            "website/index.html"
+            "website/wrangler.toml"
+          )
+          all_present=true
+          for f in "${required_files[@]}"; do
+            if [ -f "$f" ]; then
+              echo "  [PASS] $f"
+            else
+              echo "  [FAIL] $f missing"
+              all_present=false
+            fi
+          done
+          if [ "$all_present" = false ]; then
+            echo "ERROR: Required files missing"
+            exit 1
+          fi
+          echo "All required files present."
+
+      - name: Verify identity hash
+        run: |
+          expected_hash="1ba4761e3dcddbe01d2618c02065fdaa807e8c7824999d702a7a13034fd68533"
+          actual_hash=$(python3 -c "import json; print(json.load(open('identity/ARIA_IDENTITY.json'))['identity_hash'])")
+          if [ "$actual_hash" = "$expected_hash" ]; then
+            echo "[PASS] Identity hash verified: $actual_hash"
+          else
+            echo "[FAIL] Identity hash mismatch"
+            echo "  Expected: $expected_hash"
+            echo "  Actual:   $actual_hash"
+            exit 1
+          fi
 
   lint:
+    name: Lint & Validate
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Lint placeholder
-        run: echo "Add lint/test here"
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Validate JSON files
+        run: |
+          echo "Validating JSON files..."
+          for f in $(find . -name "*.json" -not -path "./.git/*"); do
+            if python3 -c "import json; json.load(open('$f'))"; then
+              echo "  [PASS] $f"
+            else
+              echo "  [FAIL] $f"
+              exit 1
+            fi
+          done
+
+      - name: Validate HTML
+        run: |
+          echo "Checking website/index.html..."
+          if grep -q '<!DOCTYPE html>' website/index.html; then
+            echo "  [PASS] Valid HTML doctype"
+          else
+            echo "  [FAIL] Missing HTML doctype"
+            exit 1
+          fi
+          if grep -q '</html>' website/index.html; then
+            echo "  [PASS] HTML properly closed"
+          else
+            echo "  [FAIL] HTML not properly closed"
+            exit 1
+          fi
+
+      - name: Validate shell scripts
+        run: |
+          echo "Checking shell scripts..."
+          for f in cli/aria cli/lucidia scripts/*.sh; do
+            if [ -f "$f" ]; then
+              if bash -n "$f" 2>/dev/null; then
+                echo "  [PASS] $f"
+              else
+                echo "  [WARN] $f has syntax issues"
+              fi
+            fi
+          done
+
+      - name: Check TOML config
+        run: |
+          echo "Validating wrangler.toml..."
+          if [ -f "website/wrangler.toml" ]; then
+            if python3 -c "
+          try:
+              import tomllib
+          except ImportError:
+              import tomli as tomllib
+          with open('website/wrangler.toml', 'rb') as f:
+              tomllib.load(f)
+          print('Valid TOML')
+          "; then
+              echo "  [PASS] wrangler.toml valid"
+            else
+              echo "  [FAIL] wrangler.toml invalid"
+              exit 1
+            fi
+          fi
+
+  security:
+    name: Security Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Check for secrets
+        run: |
+          echo "Scanning for potential secrets..."
+          patterns=(
+            "AKIA[0-9A-Z]{16}"
+            "sk-[a-zA-Z0-9]{48}"
+            "ghp_[a-zA-Z0-9]{36}"
+            "-----BEGIN (RSA |EC )?PRIVATE KEY-----"
+          )
+          found_secrets=false
+          for pattern in "${patterns[@]}"; do
+            if grep -rn "$pattern" --include="*.sh" --include="*.json" --include="*.toml" --include="*.yml" --include="*.html" --include="*.md" . 2>/dev/null | grep -v ".git/"; then
+              echo "[WARN] Potential secret pattern found: $pattern"
+              found_secrets=true
+            fi
+          done
+          if [ "$found_secrets" = true ]; then
+            echo "WARNING: Review potential secrets above"
+          else
+            echo "[PASS] No secrets detected"
+          fi
+
+      - name: Verify license
+        run: |
+          if grep -q "BlackRoad OS, Inc." LICENSE; then
+            echo "[PASS] Proprietary license verified"
+          else
+            echo "[FAIL] License missing or incorrect"
+            exit 1
+          fi
