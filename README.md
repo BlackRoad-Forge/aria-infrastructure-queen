@@ -1,5 +1,11 @@
 # 🎵 Aria - Infrastructure Queen
 
+[![Shell](https://img.shields.io/badge/Shell-Bash-4EAA25.svg)](https://gnu.org/software/bash/)
+[![Pi Fleet](https://img.shields.io/badge/fleet-5_nodes-FF2255.svg)](https://blackroad.io)
+[![Self-Hosted](https://img.shields.io/badge/self--hosted-sovereign-00D4FF.svg)](https://blackroad.io)
+
+
+
 **Infrastructure Architecture & Cost Optimization**
 
 > *"Freedom through infrastructure sovereignty"*
